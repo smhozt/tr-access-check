@@ -1,0 +1,49 @@
+name: TR Erisim Kontrolu
+
+on:
+  schedule:
+    - cron: '15,45 4-20 * * *'   # 30 dk'da bir; UTC 21:00-03:59 (TR 00:00-06:59) arasi calismaz
+  workflow_dispatch:          # elle de calistirilabilir
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Onceki durum (ENGELLI/ACIK...) commit edilmez, cache'te tutulur.
+      # Boylece sadece durum degisince Telegram'a mesaj gider.
+      - name: Onceki durumu getir
+        uses: actions/cache/restore@v4
+        with:
+          path: domain_state.json
+          key: domain-state-${{ github.run_id }}
+          restore-keys: |
+            domain-state-
+
+      - name: Kontrol
+        env:
+          GLOBALPING_TOKEN: ${{ secrets.GLOBALPING_TOKEN }}
+          DOMAIN_LIST: ${{ vars.DOMAIN_LIST }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          # Mobil (SOAX) olcum artik ayri is: mobil_check.yml (15 dakikada bir)
+        run: python domain_check.py --notify --state domain_state.json --out domain_status.json
+        # Cikis 2 sadece YENI bir engel cikinca doner (is kirmizi olur),
+        # 3 = Globalping API/limit hatasi.
+
+      - name: Durumu kaydet
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: domain_state.json
+          key: domain-state-${{ github.run_id }}
