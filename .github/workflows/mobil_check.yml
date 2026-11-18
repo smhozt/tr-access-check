@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write             # durum dalini (durum-mobil) yayinlamak icin
 
 concurrency:
   group: mobil-kontrol
@@ -50,3 +50,19 @@ jobs:
         with:
           path: domain_state_mobil.json
           key: mobil-state-${{ github.run_id }}
+
+      # Panel icin son sonucu "durum-mobil" dalina tek commit olarak yazar (main'e dokunmaz).
+      - name: Paneli guncelle
+        continue-on-error: true
+        if: always()
+        run: |
+          if [ -f mobil_status.json ]; then
+            rm -rf /tmp/pub && mkdir /tmp/pub && cp mobil_status.json /tmp/pub/
+            cd /tmp/pub
+            git init -q -b durum-mobil
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add mobil_status.json
+            git commit -q -m "durum $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+            git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/durum-mobil
+          fi
