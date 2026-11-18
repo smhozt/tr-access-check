@@ -6,7 +6,7 @@ on:
   workflow_dispatch:          # elle de calistirilabilir
 
 permissions:
-  contents: read
+  contents: write             # durum dalini (durum-ana) yayinlamak icin
 
 jobs:
   check:
@@ -47,3 +47,19 @@ jobs:
         with:
           path: domain_state.json
           key: domain-state-${{ github.run_id }}
+
+      # Panel icin son sonucu "durum-ana" dalina tek commit olarak yazar (main'e dokunmaz).
+      - name: Paneli guncelle
+        continue-on-error: true
+        if: always()
+        run: |
+          if [ -f domain_status.json ]; then
+            rm -rf /tmp/pub && mkdir /tmp/pub && cp domain_status.json /tmp/pub/
+            cd /tmp/pub
+            git init -q -b durum-ana
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add domain_status.json
+            git commit -q -m "durum $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+            git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/durum-ana
+          fi
