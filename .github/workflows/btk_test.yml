@@ -22,8 +22,17 @@ jobs:
         env:
           MOBILE_PROXY_PASSWORD: ${{ secrets.MOBILE_PROXY_PASSWORD }}
         run: |
-          python - <<'EOF'
+          python -u - <<'EOF'
           import os, urllib.parse
+          import requests
+
+          # BTKSorgu zaman asimi koymuyor: her istege 20 sn sinir ekle
+          _orig = requests.sessions.Session.request
+          def _req(self, *a, **k):
+              k.setdefault("timeout", 20)
+              return _orig(self, *a, **k)
+          requests.sessions.Session.request = _req
+
           from BTKSorgu import BTKSorgu
 
           # redtube.com = paketin kendi ornegi, engelli oldugu bilinen kontrol domaini
@@ -31,12 +40,12 @@ jobs:
                      "superbetin2916.com", "786turkbet.com"]
 
           def run(title):
-              print("=== " + title)
+              print("=== " + title, flush=True)
               for d in DOMAINS:
                   try:
-                      print(d, "->", str(BTKSorgu(d))[:300])
+                      print(d, "->", str(BTKSorgu(d))[:300], flush=True)
                   except Exception as e:
-                      print(d, "-> HATA:", type(e).__name__, str(e)[:200])
+                      print(d, "-> HATA:", type(e).__name__, str(e)[:200], flush=True)
 
           run("DIREKT (GitHub, yurt disi)")
 
@@ -49,5 +58,5 @@ jobs:
               os.environ["HTTP_PROXY"] = proxy
               run("SOAX TURKCELL PROXY (Turkiye cikisi)")
           else:
-              print("MOBILE_PROXY_PASSWORD yok, proxy testi atlandi")
+              print("MOBILE_PROXY_PASSWORD yok, proxy testi atlandi", flush=True)
           EOF
