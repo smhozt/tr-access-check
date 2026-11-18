@@ -58,7 +58,7 @@ from datetime import datetime, timedelta, timezone
 # (marka, domain) - yeni domain gelince burayı güncelle
 DOMAINS = [
     ("Superbetin", "superbetin2916.com"),
-    ("Betsat",     "betsat1856.com"),
+    ("Betsat",     "betsat1857.com"),
     ("Turkbet",    "787turkbet.com"),
 ]
 
@@ -406,7 +406,11 @@ def _mobile_request(opener, url):
         # Mobil IP'ye site/WAF "yasak" dedi: sayfa açıldı demek değil, engel de demek değil.
         low = {k.lower(): v for k, v in dict(hdrs).items()}
         who = low.get("server") or ("cloudflare" if "cf-ray" in low else "?")
-        snip = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body.decode("utf-8", "ignore"))).strip()[:50]
+        html = body.decode("utf-8", "ignore")
+        html = re.sub(r"(?is)<(style|script)[^>]*>.*?</\1>", " ", html)   # CSS/JS govdesini at
+        snip = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).strip()[:50]
+        if "just a moment" in snip.lower() or "cf-mitigated" in low:
+            snip = "Cloudflare bot kontrolü"
         return {"state": "KORUMA_RED", "code": code,
                 "detail": "HTTP %s (server=%s) %s" % (code, str(who)[:20], snip)}
     return h
