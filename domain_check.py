@@ -40,10 +40,13 @@ KISMI çıkarabilir; tekrar edip etmediğine bak.
 """
 
 import argparse
+import http.client
 import ipaddress
 import json
 import os
 import re
+import socket
+import ssl
 import sys
 import time
 import urllib.error
@@ -313,11 +316,18 @@ def short_net(name):
 #   MOBILE_ISPS            "Turkcell:16135:isp_adi,Vodafone:15897:isp_adi"
 #                          (etiket:ASN:SOAX'ın ISP adı, boşluk yerine alt çizgi)
 #   MOBILE_PROXY_HOST      varsayılan proxy.soax.com:1337
-# DNS'i proxy tarafı çözdüğü için DNS engeli ölçülemez; SNI/IP kesilmesi ve zaman
-# aşımı görülür. Proxy kaynaklı hatalar (kimlik, node yok) OLCULEMEDI sayılır.
+# Varsayılan modda (MOBILE_DNS_MODE=uzak) SOCKS5 ile alan adı çıkış cihazına gider ve DNS'i
+# operatörün ağı çözer: operatör DNS engeli (engel sayfası IP'si), SNI/IP kesilmesi ve zaman
+# aşımı görülür. MOBILE_DNS_MODE=http eski HTTP proxy yoludur (DNS'i gateway çözer, DNS engeli
+# görünmez). Proxy kaynaklı hatalar (kimlik, node yok) OLCULEMEDI sayılır.
 # ----------------------------------------------------------------------------
 
 MOBILE_HOST = os.environ.get("MOBILE_PROXY_HOST", "proxy.soax.com:1337")
+# DNS nerede cozulsun? "uzak" (varsayilan) = SOCKS5 ile alan adi cikis cihazina gider, DNS'i
+# operatorun kendi agi cozer (socks5h). Boylece operator DNS engeli de gorunur.
+# "http" = eski yol (HTTP proxy, DNS'i SOAX gateway cozer; DNS engeli gorunmez).
+MOBILE_DNS_MODE = os.environ.get("MOBILE_DNS_MODE", "uzak").strip().lower()
+_SSL_CTX = None         # testler icin; bos ise varsayilan dogrulamali baglam kullanilir
 MOBILE_TRIES = 3        # mobil node'lar kararsız olabilir: açılırsa ilk denemede biter
 MOBILE_TIMEOUT = 15     # sn
 MOBILE_BODY_MAX = 8192  # byte, trafik (GB) tüketimini küçük tutar
@@ -344,6 +354,14 @@ def mobile_targets():
     return out
 
 
+_MOBILE_HDRS = [
+    ("User-Agent", "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"),
+    ("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+    ("Accept-Language", "tr-TR,tr;q=0.9,en;q=0.7"),
+]
+
+
 def _proxy_opener(isp):
     user = "country-tr-isp-%s-network-mob" % isp
     pw = os.environ.get("MOBILE_PROXY_PASSWORD", "").strip()
@@ -353,12 +371,7 @@ def _proxy_opener(isp):
         urllib.request.ProxyHandler({"https": purl, "http": purl}), _NoRedirect())
     # Cloudflare 1010 = "tarayıcı imzası yasak": varsayılan Python-urllib UA'sını reddediyor.
     # Gerçek bir mobil tarayıcı gibi başlık gönder (kendi sitelerimizi ölçüyoruz).
-    op.addheaders = [
-        ("User-Agent", "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 "
-                       "(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"),
-        ("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
-        ("Accept-Language", "tr-TR,tr;q=0.9,en;q=0.7"),
-    ]
+    op.addheaders = list(_MOBILE_HDRS)
     return op
 
 
@@ -398,6 +411,11 @@ def _mobile_request(opener, url):
     except Exception as e:                   # bağlantı/TLS/zaman aşımı
         state, detail = classify_exc(e)
         return {"state": state, "code": None, "detail": detail}
+    return _mobile_eval(code, hdrs, body)
+
+
+def _mobile_eval(code, hdrs, body):
+    """Gelen yanıtı (kod, başlık, gövde) değerlendirir. HTTP ve SOCKS5 yolları ortak kullanır."""
     item = {"result": {"status": "finished", "statusCode": code,
                        "rawBody": body.decode("utf-8", "ignore"),
                        "headers": {k.lower(): v for k, v in dict(hdrs).items()}}}
@@ -416,12 +434,122 @@ def _mobile_request(opener, url):
     return h
 
 
+class SocksError(Exception):
+    """SOCKS5 sunucusu bağlantıyı reddetti. code: RFC 1928 yanıt kodu (1-8)."""
+    def __init__(self, code):
+        Exception.__init__(self, "socks5 yanıt kodu 0x%02x" % code)
+        self.code = code
+
+
+class ProxyConnError(Exception):
+    """Proxy'ye ulaşılamadı ya da kimlik doğrulama başarısız (ölçüm yapılamadı)."""
+
+
+def _recv_n(sock, n):
+    buf = b""
+    while len(buf) < n:
+        chunk = sock.recv(n - len(buf))
+        if not chunk:
+            raise ProxyConnError("proxy bağlantıyı erken kapattı")
+        buf += chunk
+    return buf
+
+
+def _socks5_open(isp, domain, port=443):
+    """SOCKS5 (kullanıcı/şifre) ile bağlanır. Alan adı cikis cihazina iletilir (socks5h)."""
+    user = ("country-tr-isp-%s-network-mob" % isp).encode()
+    pw = os.environ.get("MOBILE_PROXY_PASSWORD", "").strip().encode()
+    host, _, pport = MOBILE_HOST.partition(":")
+    try:
+        sock = socket.create_connection((host, int(pport or 1080)), timeout=MOBILE_TIMEOUT)
+    except OSError as e:
+        raise ProxyConnError("proxy bağlantısı kurulamadı: %s" % type(e).__name__)
+    try:
+        sock.settimeout(MOBILE_TIMEOUT)
+        sock.sendall(b"\x05\x01\x02")
+        r = _recv_n(sock, 2)
+        if r[0] != 5 or r[1] != 2:
+            raise ProxyConnError("proxy kullanıcı/şifre yöntemini kabul etmedi")
+        sock.sendall(b"\x01" + bytes([len(user)]) + user + bytes([len(pw)]) + pw)
+        if _recv_n(sock, 2)[1] != 0:
+            raise ProxyConnError("proxy kimlik doğrulaması başarısız")
+        name = domain.encode("idna")
+        sock.sendall(b"\x05\x01\x00\x03" + bytes([len(name)]) + name + port.to_bytes(2, "big"))
+        head = _recv_n(sock, 4)
+        if head[1] != 0:
+            raise SocksError(head[1])
+        atyp = head[3]
+        if atyp == 1:
+            _recv_n(sock, 6)
+        elif atyp == 4:
+            _recv_n(sock, 18)
+        else:
+            _recv_n(sock, _recv_n(sock, 1)[0] + 2)
+        return sock
+    except BaseException:
+        sock.close()
+        raise
+
+
+class _SocksHTTPS(http.client.HTTPSConnection):
+    def __init__(self, isp, domain):
+        http.client.HTTPSConnection.__init__(self, domain, 443, timeout=MOBILE_TIMEOUT)
+        self._isp = isp
+
+    def connect(self):
+        raw = _socks5_open(self._isp, self.host, 443)
+        ctx = _SSL_CTX or ssl.create_default_context()
+        self.sock = ctx.wrap_socket(raw, server_hostname=self.host)
+
+
+def classify_socks_exc(exc):
+    """SOCKS5 yolundaki istisnayı (state, detail) yap. Çıkış ağından gelen hatalar engel işareti olabilir."""
+    if isinstance(exc, ProxyConnError):
+        return "PROXY_HATA", str(exc)[:100]
+    if isinstance(exc, SocksError):
+        if exc.code in (3, 4):      # çıkış ağı alan adını çözemedi / adrese ulaşamadı
+            return "ERISIM_HATA", "çıkış ağından ulaşılamıyor (SOCKS5 0x%02x)" % exc.code
+        if exc.code == 5:
+            return "BAGLANTI_REDDEDILDI", "sunucu bağlantıyı reddetti (SOCKS5 0x05)"
+        return "PROXY_HATA", "proxy hatası (SOCKS5 0x%02x)" % exc.code
+    if isinstance(exc, ssl.SSLCertVerificationError):
+        return "SERTIFIKA_HATASI", ("sertifika doğrulanamadı: %s" % exc)[:100]
+    if isinstance(exc, (socket.timeout, TimeoutError)):
+        return "ZAMAN_ASIMI", "zaman aşımı (TLS/HTTP)"
+    if isinstance(exc, (ssl.SSLError, ConnectionResetError, BrokenPipeError,
+                        http.client.RemoteDisconnected, http.client.IncompleteRead)):
+        # El sıkışma tamamlanmadı / bağlantı kesildi: SNI/DPI ya da engel sayfası IP'sine gidiş deseni
+        return "BAGLANTI_KESILDI", "bağlantı kesildi (TLS el sıkışması): %s" % type(exc).__name__
+    return classify_exc(exc)
+
+
+def _mobile_request_socks(isp, domain):
+    conn = _SocksHTTPS(isp, domain)
+    try:
+        conn.request("GET", "/", headers=dict(_MOBILE_HDRS))
+        resp = conn.getresponse()
+        code, hdrs, body = resp.status, resp.headers, resp.read(MOBILE_BODY_MAX)
+    except Exception as e:
+        state, detail = classify_socks_exc(e)
+        return {"state": state, "code": None, "detail": detail}
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+    return _mobile_eval(code, hdrs, body)
+
+
 def mobile_fetch(domain, isp):
     """Birkaç deneme: biri açılırsa ACIK. Hepsi proxy hatasıysa PROXY_HATA."""
-    opener = _proxy_opener(isp)
+    use_socks = MOBILE_DNS_MODE != "http"
+    opener = None if use_socks else _proxy_opener(isp)
     results = []
     for _ in range(MOBILE_TRIES):
-        h = _mobile_request(opener, "https://%s/" % domain)
+        if use_socks:
+            h = _mobile_request_socks(isp, domain)
+        else:
+            h = _mobile_request(opener, "https://%s/" % domain)
         if h["state"] in ("OK", "SAYFA_ENGEL"):
             return h
         results.append(h)
@@ -635,6 +763,7 @@ HTTP_LABEL = {
     "BAGLANTI_REDDEDILDI": "bağlantı reddedildi",
     "SUNUCU_HATASI": "sunucu hatası",
     "PROXY_HATA": "ölçülemedi (proxy)",
+    "ERISIM_HATA": "çıkış ağından ulaşılamıyor (DNS/IP engeli olabilir)",
     "KORUMA_RED": "ölçülemedi (site mobil IP'yi reddetti)",
     "KORUMA": "koruma/bot kontrolü (engel değil)",
     "HATA": "hata",
