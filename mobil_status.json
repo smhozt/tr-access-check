@@ -1,0 +1,182 @@
+{
+  "checked_at": "2026-11-21T17:49:14+00:00",
+  "mobile": {
+    "superbetin2917.com": [
+      {
+        "asn": 16135,
+        "network": "Turkcell (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /spor/"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=16135, carrier=Turkcell, isp=Turkcell"
+      },
+      {
+        "asn": 15897,
+        "network": "Vodafone (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /spor/"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=15897, carrier=Vodafone Turkey, isp=Vodafone Turkey"
+      },
+      {
+        "asn": 20978,
+        "network": "TurkTelekom (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /spor/"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=20978, carrier=Turk Telekom, isp=Turk Telekom"
+      }
+    ],
+    "betsat1858.com": [
+      {
+        "asn": 16135,
+        "network": "Turkcell (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /modules/sports/digitain.php"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=16135, carrier=Turkcell, isp=Turkcell"
+      },
+      {
+        "asn": 15897,
+        "network": "Vodafone (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /modules/sports/digitain.php"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=15897, carrier=Vodafone Turkey, isp=Vodafone Turkey"
+      },
+      {
+        "asn": 20978,
+        "network": "TurkTelekom (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 302,
+          "detail": "HTTP 302 -> /modules/sports/digitain.php"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=20978, carrier=Turk Telekom, isp=Turk Telekom"
+      }
+    ],
+    "789turkbet.com": [
+      {
+        "asn": 16135,
+        "network": "Turkcell (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 200,
+          "detail": "HTTP 200"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=16135, carrier=Turkcell, isp=Turkcell"
+      },
+      {
+        "asn": 15897,
+        "network": "Vodafone (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 200,
+          "detail": "HTTP 200"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=15897, carrier=Vodafone Turkey, isp=Vodafone Turkey"
+      },
+      {
+        "asn": 20978,
+        "network": "TurkTelekom (mobil)",
+        "city": "mobil",
+        "dns": {
+          "state": "OK",
+          "detail": "proxy çözdü",
+          "resolver": null,
+          "ips": [],
+          "public_dns": true
+        },
+        "http": {
+          "state": "OK",
+          "code": 200,
+          "detail": "HTTP 200"
+        },
+        "verdict": "ACIK",
+        "exit": "asn=20978, carrier=Turk Telekom, isp=Turk Telekom"
+      }
+    ]
+  }
+}
