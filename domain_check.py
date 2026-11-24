@@ -15,7 +15,7 @@ Kullanım:
   python domain_check.py --out sonuc.json
   GLOBALPING_TOKEN=xxxx python domain_check.py     (önerilir, ücretsiz hesap token'ı)
   DOMAIN_LIST="Betsat:betsat1858.com" python domain_check.py   (listeyi dışarıdan ver)
-  python domain_check.py --notify                  (durum değişince Telegram'a yazar)
+  python domain_check.py --notify                  (durum değişince Telegram'a yazar; PANEL_URL + NOTIFY_SECRET varsa panelden Chrome bildirimi de gider)
 
 Bildirim modu (--notify): TELEGRAM_TOKEN ve TELEGRAM_CHAT_IDS (virgülle ayrılmış)
 ortam değişkenleri gerekir. Önceki durum --state dosyasında tutulur. Mesaj sadece
@@ -855,7 +855,7 @@ def build_alerts(results, prev):
     return alerts
 
 
-def send_telegram(text):
+def _telegram_send(text):
     token = os.environ.get("TELEGRAM_TOKEN", "").strip()
     chats = [c.strip() for c in os.environ.get("TELEGRAM_CHAT_IDS", "").split(",") if c.strip()]
     if not token or not chats:
@@ -878,6 +878,42 @@ def send_telegram(text):
         except Exception as e:
             print("Telegram gönderilemedi (chat %s): %s" % (chat, type(e).__name__))
             ok = False
+    return ok
+
+
+def push_notify(title, body):
+    """Panel (Cloudflare Worker) uzerinden Chrome bildirimi gonderir. Ayar yoksa sessizce atlar;
+    hata ana akisi bozmaz. Sadece standart kutuphane kullanir (pip gerekmez)."""
+    url = os.environ.get("PANEL_URL", "").strip().rstrip("/")
+    secret = os.environ.get("NOTIFY_SECRET", "").strip()
+    if not url or not secret:
+        return False
+    data = json.dumps({"title": title, "body": body}).encode("utf-8")
+    req = urllib.request.Request(
+        url + "/api/notify", data=data, method="POST",
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + secret,
+                 "User-Agent": "tr-access-check/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            r.read()
+        return True
+    except urllib.error.HTTPError as e:
+        print("Chrome bildirimi gönderilemedi: HTTP %s" % e.code)
+    except Exception as e:
+        print("Chrome bildirimi gönderilemedi: %s" % type(e).__name__)
+    return False
+
+
+def send_telegram(text):
+    """Telegram'a yazar; basarili olunca (ya da Telegram ayari hic yoksa) ayni mesaj Chrome'a da gider.
+    Donus degeri sadece Telegram sonucunu yansitir, durum kaydi buna gore tutulur."""
+    tg_set = bool(os.environ.get("TELEGRAM_TOKEN", "").strip() and os.environ.get("TELEGRAM_CHAT_IDS", "").strip())
+    ok = _telegram_send(text)
+    if ok or not tg_set:
+        lines = text.split("\n")
+        title = lines[0][:80]
+        body = "\n".join(lines[1:]).strip() or lines[0]
+        push_notify(title, body)
     return ok
 
 
