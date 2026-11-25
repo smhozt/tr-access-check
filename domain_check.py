@@ -42,6 +42,7 @@ KISMI çıkarabilir; tekrar edip etmediğine bak.
 import argparse
 import http.client
 import ipaddress
+import html
 import json
 import os
 import re
@@ -780,15 +781,32 @@ def probe_label(p):
     return HTTP_LABEL.get(p["http"]["state"], p["http"]["state"].lower())
 
 
+B_ON, B_OFF = "\ue000", "\ue001"     # kalın başlangıç/bitiş işareti (Telegram'a giderken <b> olur)
+
+
+def is_reset(p):
+    """Bağlantı karşı taraftan sıfırlandı (ECONNRESET): engel cihazının klasik izi."""
+    d = ((p.get("http") or {}).get("detail") or "").lower()
+    return "econnreset" in d or "reset by peer" in d or "connection reset" in d
+
+
+def reset_note(n):
+    return "  🔴 %sECONNRESET%s%s" % (B_ON, B_OFF, (" x%d" % n) if n > 1 else "")
+
+
 def isp_summary(probes):
     groups = {}
+    resets = {}
     for p in probes:
         name = ISP_NAMES.get(p["asn"], short_net(p["network"]))
         labels = groups.setdefault(name, [])
         lab = probe_label(p)
         if lab not in labels:
             labels.append(lab)
-    return "\n".join("  %s: %s" % (n, " / ".join(l)) for n, l in groups.items())
+        if is_reset(p):
+            resets[name] = resets.get(name, 0) + 1
+    return "\n".join("  %s: %s%s" % (n, " / ".join(l), reset_note(resets[n]) if n in resets else "")
+                     for n, l in groups.items())
 
 
 def load_state(path):
@@ -810,7 +828,8 @@ def mobile_alerts(results, prev):
         before = prev.get(key)
         if cur is None or cur == before:
             continue
-        lines = "\n".join("  %s: %s" % (p["network"], probe_label(p)) for p in r["mobile"])
+        lines = "\n".join("  %s: %s%s" % (p["network"], probe_label(p), reset_note(1) if is_reset(p) else "")
+                          for p in r["mobile"])
         head = "%s  %s" % (r["brand"], r["domain"])
         if cur == "MOBIL_SUPHE":
             msg = ("📱 %s\nSOAX mobil ölçümüne göre ulaşılamıyor görünüyor (BİLGİ, henüz doğrulanmadı)\n"
@@ -855,6 +874,27 @@ def build_alerts(results, prev):
     return alerts
 
 
+def _plain(text):
+    return text.replace(B_ON, "").replace(B_OFF, "")
+
+
+def _html(text):
+    return html.escape(text, quote=False).replace(B_ON, "<b>").replace(B_OFF, "</b>")
+
+
+def _telegram_post(token, chat, text, use_html):
+    payload = {"chat_id": chat, "text": _html(text) if use_html else _plain(text),
+               "disable_web_page_preview": True}
+    if use_html:
+        payload["parse_mode"] = "HTML"
+    req = urllib.request.Request(
+        "https://api.telegram.org/bot%s/sendMessage" % token,
+        data=json.dumps(payload).encode("utf-8"), method="POST",
+        headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        r.read()
+
+
 def _telegram_send(text):
     token = os.environ.get("TELEGRAM_TOKEN", "").strip()
     chats = [c.strip() for c in os.environ.get("TELEGRAM_CHAT_IDS", "").split(",") if c.strip()]
@@ -863,14 +903,13 @@ def _telegram_send(text):
         return False
     ok = True
     for chat in chats:
-        body = json.dumps({"chat_id": chat, "text": text,
-                           "disable_web_page_preview": True}).encode("utf-8")
-        req = urllib.request.Request(
-            "https://api.telegram.org/bot%s/sendMessage" % token, data=body, method="POST",
-            headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=20) as r:
-                r.read()
+            try:
+                _telegram_post(token, chat, text, True)
+            except urllib.error.HTTPError as e:
+                if e.code != 400:
+                    raise
+                _telegram_post(token, chat, text, False)    # biçimlendirme reddedildiyse düz metin
         except urllib.error.HTTPError as e:
             # Hata metni URL (yani token) içerebilir, sadece kodu yaz
             print("Telegram gönderilemedi (chat %s): HTTP %s" % (chat, e.code))
@@ -910,7 +949,7 @@ def send_telegram(text):
     tg_set = bool(os.environ.get("TELEGRAM_TOKEN", "").strip() and os.environ.get("TELEGRAM_CHAT_IDS", "").strip())
     ok = _telegram_send(text)
     if ok or not tg_set:
-        lines = text.split("\n")
+        lines = _plain(text).split("\n")
         title = lines[0][:80]
         body = "\n".join(lines[1:]).strip() or lines[0]
         push_notify(title, body)
