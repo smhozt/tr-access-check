@@ -63,12 +63,12 @@ from datetime import datetime, timedelta, timezone
 DOMAINS = [
     ("Superbetin", "superbetin2918.com"),
     ("Betsat",     "betsat1859.com"),
-    ("Turkbet",    "790turkbet.com"),
+    ("Turkbet",    "791turkbet.com"),
 ]
 
 # İstersen listeyi dosyaya yazmak yerine DOMAIN_LIST ortam değişkeniyle ver
 # (GitHub: Settings > Secrets and variables > Actions > Variables > DOMAIN_LIST).
-# Format: "Superbetin:superbetin2918.com,Betsat:betsat1859.com,Turkbet:790turkbet.com"
+# Format: "Superbetin:superbetin2918.com,Betsat:betsat1859.com,Turkbet:791turkbet.com"
 # Doluysa yukarıdaki DOMAINS listesi yerine bu kullanılır. Domain rotasyonunda
 # sadece değişkeni güncellemen yeter, commit gerekmez.
 
