@@ -1,0 +1,413 @@
+{
+  "checked_at": "2026-11-28T19:52:31+00:00",
+  "results": [
+    {
+      "brand": "Superbetin",
+      "domain": "superbetin2919.com",
+      "overall": "ACIK",
+      "probes": [
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "104.21.53.56, 172.67.209.37",
+            "resolver": "1.1.1.1",
+            "ips": [
+              "104.21.53.56",
+              "172.67.209.37"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Sancaktepe",
+          "dns": {
+            "state": "OK",
+            "detail": "104.21.53.56, 172.67.209.37",
+            "resolver": "private",
+            "ips": [
+              "104.21.53.56",
+              "172.67.209.37"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Ankara",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.209.37, 104.21.53.56",
+            "resolver": "private",
+            "ips": [
+              "172.67.209.37",
+              "104.21.53.56"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.209.37, 104.21.53.56",
+            "resolver": "private",
+            "ips": [
+              "172.67.209.37",
+              "104.21.53.56"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Trabzon",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.209.37, 104.21.53.56",
+            "resolver": "8.8.8.8",
+            "ips": [
+              "172.67.209.37",
+              "104.21.53.56"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 12735,
+          "network": "TurkNet Iletisim Hizmetleri",
+          "city": "Antalya",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.209.37, 104.21.53.56",
+            "resolver": "private",
+            "ips": [
+              "172.67.209.37",
+              "104.21.53.56"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /spor/"
+          },
+          "verdict": "ACIK"
+        }
+      ],
+      "mobile": [],
+      "dns_id": "28XCj9pM7rzSr6IXC00121aZc",
+      "http_id": "2Jw3bambZ6UVnrWJg00121aZc"
+    },
+    {
+      "brand": "Betsat",
+      "domain": "betsat1860.com",
+      "overall": "ACIK",
+      "probes": [
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.164.222, 104.21.11.3",
+            "resolver": "1.1.1.1",
+            "ips": [
+              "172.67.164.222",
+              "104.21.11.3"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Sancaktepe",
+          "dns": {
+            "state": "OK",
+            "detail": "104.21.11.3, 172.67.164.222",
+            "resolver": "private",
+            "ips": [
+              "104.21.11.3",
+              "172.67.164.222"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Ankara",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.164.222, 104.21.11.3",
+            "resolver": "private",
+            "ips": [
+              "172.67.164.222",
+              "104.21.11.3"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "104.21.11.3, 172.67.164.222",
+            "resolver": "private",
+            "ips": [
+              "104.21.11.3",
+              "172.67.164.222"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Trabzon",
+          "dns": {
+            "state": "OK",
+            "detail": "104.21.11.3, 172.67.164.222",
+            "resolver": "8.8.8.8",
+            "ips": [
+              "104.21.11.3",
+              "172.67.164.222"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 12735,
+          "network": "TurkNet Iletisim Hizmetleri",
+          "city": "Antalya",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.164.222, 104.21.11.3",
+            "resolver": "private",
+            "ips": [
+              "172.67.164.222",
+              "104.21.11.3"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 302,
+            "detail": "HTTP 302 -> /modules/sports/digitain.php"
+          },
+          "verdict": "ACIK"
+        }
+      ],
+      "mobile": [],
+      "dns_id": "2NAH8JTwGbeC5RMp900121aZc",
+      "http_id": "2e8u1O0zCDEPiac4I00121aZc"
+    },
+    {
+      "brand": "Turkbet",
+      "domain": "791turkbet.com",
+      "overall": "ACIK",
+      "probes": [
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "172.67.186.101, 104.21.36.60",
+            "resolver": "1.1.1.1",
+            "ips": [
+              "172.67.186.101",
+              "104.21.36.60"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 9121,
+          "network": "Turk Telekomunikasyon Anonim Sirketi",
+          "city": "Sancaktepe",
+          "dns": {
+            "state": "OK",
+            "detail": "188.114.96.0, 188.114.97.0",
+            "resolver": "private",
+            "ips": [
+              "188.114.96.0",
+              "188.114.97.0"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Ankara",
+          "dns": {
+            "state": "OK",
+            "detail": "188.114.97.7, 188.114.96.7",
+            "resolver": "private",
+            "ips": [
+              "188.114.97.7",
+              "188.114.96.7"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Istanbul",
+          "dns": {
+            "state": "OK",
+            "detail": "188.114.96.3, 188.114.97.3",
+            "resolver": "private",
+            "ips": [
+              "188.114.96.3",
+              "188.114.97.3"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 34984,
+          "network": "Superonline Iletisim Hizmetleri",
+          "city": "Trabzon",
+          "dns": {
+            "state": "OK",
+            "detail": "188.114.97.7, 188.114.96.7",
+            "resolver": "8.8.8.8",
+            "ips": [
+              "188.114.97.7",
+              "188.114.96.7"
+            ],
+            "public_dns": true
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        },
+        {
+          "asn": 12735,
+          "network": "TurkNet Iletisim Hizmetleri",
+          "city": "Antalya",
+          "dns": {
+            "state": "OK",
+            "detail": "188.114.97.3, 188.114.96.3",
+            "resolver": "private",
+            "ips": [
+              "188.114.97.3",
+              "188.114.96.3"
+            ],
+            "public_dns": false
+          },
+          "http": {
+            "state": "OK",
+            "code": 200,
+            "detail": "HTTP 200"
+          },
+          "verdict": "ACIK"
+        }
+      ],
+      "mobile": [],
+      "dns_id": "2ZZiMNhS9lFvLlwIu00121aZc",
+      "http_id": "266vTCCk3hU9LmxLa00121aZc"
+    }
+  ]
+}
